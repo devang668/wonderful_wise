@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI角色扮演 - 与历史和虚构人物对话</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind 配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#7C3AED',
+                        accent: '#EC4899',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .bg-glass {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(10px);
+            }
+            .bg-glass-dark {
+                background: rgba(30, 41, 59, 0.8);
+                backdrop-filter: blur(10px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-light to-gray-100 dark:from-dark dark:to-gray-900 min-h-screen">
+<!-- 顶部导航 -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-glass dark:bg-glass-dark border-b border-gray-200 dark:border-gray-800">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <i class="fa fa-magic text-primary text-2xl"></i>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">AI角色扮演</h1>
+        </div>
+        <nav class="hidden md:flex space-x-8">
+            <a href="#" class="font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">首页</a>
+            <a href="#characters" class="font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">角色库</a>
+            <a href="#about" class="font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors">关于</a>
+        </nav>
+        <button id="theme-toggle" class="p-2 rounded-full text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+            <i class="fa fa-moon-o dark:hidden"></i>
+            <i class="fa fa-sun-o hidden dark:block"></i>
+        </button>
+    </div>
+</header>
+
+<!-- 主内容区 -->
+<main class="container mx-auto px-4 pt-24 pb-16">
+    <!-- 欢迎区域 -->
+    <section class="text-center mb-16">
+        <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+            与任何角色对话
+        </h2>
+        <p class="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+            穿越时空，与历史伟人、文学经典角色、虚构人物进行真实的语音对话。探索无限可能。
+        </p>
+        <div class="relative max-w-2xl mx-auto">
+            <input
+                    type="text"
+                    id="character-search"
+                    placeholder="搜索角色：哈利波特、苏格拉底、爱因斯坦..."
+                    class="w-full px-6 py-4 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all"
+            >
+            <button id="search-button" class="absolute right-2 top-2 bottom-2 px-6 bg-primary hover:bg-primary/90 text-white font-medium rounded-full transition-all shadow-md hover:shadow-lg">
+                <i class="fa fa-search mr-2"></i>搜索
+            </button>
+        </div>
+    </section>
+
+    <!-- 热门角色 -->
+    <section id="characters" class="mb-16">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">热门角色</h3>
+            <div class="flex space-x-2">
+                <button class="category-btn px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-category="all">全部</button>
+                <button class="category-btn px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-category="historical">历史</button>
+                <button class="category-btn px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-category="fictional">虚构</button>
+                <button class="category-btn px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-category="scientific">科学</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="characters-grid">
+            <!-- 角色卡片将动态生成 -->
+        </div>
+    </section>
+
+    <!-- 聊天区域 -->
+    <section id="chat-section" class="hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+            <!-- 聊天头部 -->
+            <div class="flex justify-between items-center px-6 py-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center space-x-4">
+                    <div id="current-character-avatar" class="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center text-xl font-bold">
+                        A
+                    </div>
+                    <div>
+                        <h3 id="current-character-name" class="font-bold text-gray-900 dark:text-white">角色名称</h3>
+                        <p id="current-character-status" class="text-sm text-green-500"><i class="fa fa-circle mr-1"></i>在线</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="character-info-btn" class="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fa fa-info-circle"></i>
+                    </button>
+                    <button id="close-chat-btn" class="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 聊天内容 -->
+            <div id="chat-messages" class="h-[500px] overflow-y-auto p-6 space-y-6">
+                <!-- 欢迎消息 -->
+                <div class="flex space-x-4">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">
+                        A
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-4 max-w-[75%]">
+                        <p class="text-gray-900 dark:text-white">你好！我是<span id="welcome-character-name">角色名称</span>。很高兴能和你聊天。你有什么问题想问我吗？</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聊天输入 -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <div class="flex space-x-3">
+                    <button id="voice-input-btn" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors">
+                        <i class="fa fa-microphone"></i>
+                    </button>
+                    <div class="flex-grow relative">
+                        <input
+                                type="text"
+                                id="text-input"
+                                placeholder="输入消息或点击麦克风语音输入..."
+                                class="w-full px-4 py-3 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        >
+                    </div>
+                    <button id="send-btn" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="mt-3 text-center text-sm text-gray-500 dark:text-gray-400" id="recognition-status">
+                    点击麦克风开始语音输入
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 角色技能介绍 -->
+    <section id="character-skills" class="mb-16">
+        <h3 class="text-2xl font-bold text-center mb-12 text-gray-900 dark:text-white">角色特殊技能</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <i class="fa fa-book text-2xl"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">知识专家</h4>
+                <p class="text-gray-700 dark:text-gray-300">每个角色在其专业领域提供准确信息和见解，如苏格拉底的哲学、爱因斯坦的物理学等。</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 rounded-full bg-secondary/10 text-secondary flex items-center justify-center mb-4">
+                    <i class="fa fa-heart text-2xl"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">情感陪伴</h4>
+                <p class="text-gray-700 dark:text-gray-300">能够感知用户情绪并给出适当回应，提供情感支持和鼓励。</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
+                <div class="w-14 h-14 rounded-full bg-accent/10 text-accent flex items-center justify-center mb-4">
+                    <i class="fa fa-pencil text-2xl"></i>
+                </div>
+                <h4 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">故事创作</h4>
+                <p class="text-gray-700 dark:text-gray-300">根据角色背景创作相关的小故事或情节扩展，丰富角色互动体验。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 使用说明 -->
+    <section id="about" class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <h3 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">如何使用</h3>
+        <div class="space-y-4 text-gray-700 dark:text-gray-300">
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">1</div>
+                <p>在搜索框中输入您感兴趣的角色名称，或从热门角色列表中选择。</p>
+            </div>
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">2</div>
+                <p>进入聊天界面后，可以通过文字输入或点击麦克风按钮进行语音对话。</p>
+            </div>
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">3</div>
+                <p>探索每个角色的特殊技能，如知识讲解、情感陪伴、故事创作等。</p>
+            </div>
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0">4</div>
+                <p>随时点击关闭按钮返回角色选择界面，切换不同角色进行对话。</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 页脚 -->
+<footer class="bg-glass dark:bg-glass-dark border-t border-gray-200 dark:border-gray-800 py-6">
+    <div class="container mx-auto px-4 text-center text-gray-700 dark:text-gray-300">
+        <p>© 2023 AI角色扮演 | 通过AI技术实现与任意角色的对话体验</p>
+    </div>
+</footer>
+
+<!-- 角色详情模态框 -->
+<div id="character-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h3 id="modal-character-name" class="text-xl font-bold text-gray-900 dark:text-white">角色名称</h3>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:space-x-6">
+                <div class="w-32 h-32 rounded-full bg-primary text-white flex items-center justify-center text-3xl font-bold mb-4 md:mb-0">
+                    A
+                </div>
+                <div class="flex-grow">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">关于角色</h4>
+                    <p id="modal-character-description" class="text-gray-700 dark:text-gray-300 mb-4">角色详细介绍...</p>
+                    <h4 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">技能</h4>
+                    <ul id="modal-character-skills" class="list-disc pl-5 text-gray-700 dark:text-gray-300">
+                        <!-- 角色技能将动态生成 -->
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="start-chat-from-modal-btn" class="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-full transition-all shadow-md hover:shadow-lg">
+                    开始对话
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 主要JavaScript -->
+<script>
+    // 角色数据
+    const characters = [
+        {
+            id: 1,
+            name: "苏格拉底",
+            category: "historical",
+            avatar: "苏",
+            description: "古希腊著名哲学家，西方哲学的奠基人之一。以问答法（苏格拉底法）著称，致力于探讨伦理道德问题。",
+            color: "#4F46E5",
+            skills: [
+                "哲学问答：通过提问引导你思考人生哲理",
+                "伦理探讨：分析道德困境和价值观问题",
+                "逻辑推理：训练你的批判性思维能力"
+            ],
+            welcomeMessage: "你好，我的朋友。我是苏格拉底。你今天想探讨什么问题呢？是关于美德、知识，还是人生的意义？"
+        },
+        {
+            id: 2,
+            name: "哈利波特",
+            category: "fictional",
+            avatar: "哈",
+            description: "J.K.罗琳笔下的虚构人物，霍格沃茨魔法学校的学生，著名的'大难不死的男孩'，与黑魔王伏地魔展开了长期斗争。",
+            color: "#EC4899",
+            skills: [
+                "魔法知识：解答关于魔法世界的各种问题",
+                "冒险故事：分享霍格沃茨的冒险经历",
+                "友谊建议：基于与罗恩、赫敏的友谊经验"
+            ],
+            welcomeMessage: "嘿！我是哈利·波特。欢迎来到魔法世界！你对魔法有什么好奇的吗？或者想听听我在霍格沃茨的冒险故事？"
+        },
+        {
+            id: 3,
+            name: "爱因斯坦",
+            category: "scientific",
+            avatar: "爱",
+            description: "20世纪最伟大的物理学家之一，提出了相对论，对现代物理学的发展产生了深远影响。",
+            color: "#10B981",
+            skills: [
+                "物理科普：用简单语言解释复杂的物理概念",
+                "科学思维：培养科学探索和创新思维",
+                "人生智慧：分享科学研究中的感悟"
+            ],
+            welcomeMessage: "你好！我是阿尔伯特·爱因斯坦。宇宙的奥秘等待我们去探索。你对物理学有什么疑问吗？或者想了解相对论的基本原理？"
+        },
+        {
+            id: 4,
+            name: "林黛玉",
+            category: "fictional",
+            avatar: "黛",
+            description: "曹雪芹《红楼梦》中的主要人物，敏感细腻，才华横溢，性格多愁善感。",
+            color: "#F43F5E",
+            skills: [
+                "诗词鉴赏：赏析古典诗词并创作新诗",
+                "情感倾诉：倾听并理解你的情感困扰",
+                "文学评论：对古典文学作品进行分析"
+            ],
+            welcomeMessage: "泪眼问花花不语，乱红飞过秋千去。妾身林黛玉，不知公子有何心事要与我诉说？"
+        },
+        {
+            id: 5,
+            name: "牛顿",
+            category: "scientific",
+            avatar: "牛",
+            description: "英国著名数学家、物理学家，万有引力定律的发现者，经典力学的奠基人。",
+            color: "#6366F1",
+            skills: [
+                "科学解释：用三大定律解释日常生活现象",
+                "数学推导：帮助理解微积分等数学概念",
+                "科学方法：传授科学研究的思路和方法"
+            ],
+            welcomeMessage: "你好，我是艾萨克·牛顿。自然界的规律是如此美妙而和谐。你想了解物体运动的规律，还是万有引力的奥秘？"
+        },
+        {
+            id: 6,
+            name: "莎士比亚",
+            category: "historical",
+            avatar: "莎",
+            description: "英国文艺复兴时期伟大的剧作家、诗人，代表作有《哈姆雷特》、《罗密欧与朱丽叶》等。",
+            color: "#8B5CF6",
+            skills: [
+                "戏剧赏析：解读经典戏剧作品",
+                "诗歌创作：创作十四行诗和其他诗歌",
+                "语言艺术：探讨文学与语言的魅力"
+            ],
+            welcomeMessage: "生存还是毁灭，这是一个值得思考的问题。我是威廉·莎士比亚，很高兴能与你探讨文学与人生的奥秘。"
+        }
+    ];
+
+    // 当前选中的角色
+    let currentCharacter = null;
+    // 对话历史
+    let chatHistory = [];
+    // 语音识别相关
+    let recognition = null;
+    let isRecording = false;
+
+    // DOM元素
+    const charactersGrid = document.getElementById('characters-grid');
+    const chatSection = document.getElementById('chat-section');
+    const chatMessages = document.getElementById('chat-messages');
+    const textInput = document.getElementById('text-input');
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+    const sendBtn = document.getElementById('send-btn');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const characterSearch = document.getElementById('character-search');
+    const searchButton = document.getElementById('search-button');
+    const recognitionStatus = document.getElementById('recognition-status');
+    const characterModal = document.getElementById('character-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const characterInfoBtn = document.getElementById('character-info-btn');
+    const startChatFromModalBtn = document.getElementById('start-chat-from-modal-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const categoryButtons = document.querySelectorAll('.category-btn');
+
+    // 初始化页面
+    function init() {
+        // 加载角色卡片
+        loadCharacterCards('all');
+        // 初始化事件监听器
+        initEventListeners();
+        // 检查暗色模式偏好
+        checkDarkModePreference();
+        // 尝试初始化语音识别
+        initSpeechRecognition();
+    }
+
+    // 加载角色卡片
+    function loadCharacterCards(category) {
+        charactersGrid.innerHTML = '';
+
+        const filteredCharacters = category === 'all'
+            ? characters
+            : characters.filter(char => char.category === category);
+
+        filteredCharacters.forEach(character => {
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-1';
+            card.innerHTML = `
+                    <div class="p-6">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-4" style="background-color: ${character.color}20; color: ${character.color}">
+                            ${character.avatar}
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-white">${character.name}</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2">${character.description}</p>
+                        <button class="w-full py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg transition-colors">
+                            开始对话
+                        </button>
+                    </div>
+                `;
+
+            card.addEventListener('click', () => {
+                selectCharacter(character);
+            });
+
+            charactersGrid.appendChild(card);
+        });
+    }
+
+    // 选择角色
+    function selectCharacter(character) {
+        currentCharacter = character;
+        chatHistory = [];
+
+        // 更新聊天界面
+        document.getElementById('current-character-name').textContent = character.name;
+        document.getElementById('welcome-character-name').textContent = character.name;
+        document.getElementById('current-character-avatar').textContent = character.avatar;
+        document.getElementById('current-character-avatar').style.backgroundColor = character.color;
+
+        // 清空聊天记录并添加欢迎消息
+        chatMessages.innerHTML = '';
+        addMessageToChat(character.name, character.welcomeMessage, character.color);
+
+        // 显示聊天界面
+        chatSection.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 添加消息到聊天记录
+    function addMessageToChat(sender, message, avatarColor = '#6B7280') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex space-x-4 ${sender === 'You' ? 'justify-end' : ''}`;
+
+        if (sender !== 'You') {
+            messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: ${avatarColor}">
+                        ${currentCharacter ? currentCharacter.avatar : 'A'}
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-4 max-w-[75%] rounded-tl-none">
+                        <p class="font-medium text-gray-600 dark:text-gray-400 text-sm mb-1">${sender}</p>
+                        <p class="text-gray-900 dark:text-white">${message}</p>
+                    </div>
+                `;
+        } else {
+            messageDiv.innerHTML = `
+                    <div class="bg-primary/10 dark:bg-primary/20 rounded-2xl p-4 max-w-[75%] rounded-tr-none">
+                        <p class="font-medium text-primary dark:text-primary/90 text-sm mb-1">${sender}</p>
+                        <p class="text-gray-900 dark:text-white">${message}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-user text-gray-600 dark:text-gray-400"></i>
+                    </div>
+                `;
+        }
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // 保存到聊天历史
+        chatHistory.push({ sender, message, timestamp: new Date() });
+    }
+
+    // 发送消息
+    function sendMessage() {
+        const message = textInput.value.trim();
+        if (message && currentCharacter) {
+            // 添加用户消息
+            addMessageToChat('You', message);
+            textInput.value = '';
+
+            // 显示正在输入
+            recognitionStatus.textContent = 'AI正在回复...';
+
+            // 模拟AI回复（在实际应用中应调用API）
+            setTimeout(() => {
+                const aiResponse = generateAIResponse(message);
+                addMessageToChat(currentCharacter.name, aiResponse, currentCharacter.color);
+
+                // 语音合成AI回复
+                speakText(aiResponse);
+
+                // 恢复状态文本
+                recognitionStatus.textContent = '点击麦克风开始语音输入';
+            }, 1500);
+        }
+    }
+
+    // 生成AI回复（模拟）
+    function generateAIResponse(userMessage) {
+        // 在实际应用中，这里应该调用LLM API
+        // 这里只是简单的模拟回复
+        const responses = {
+            '苏格拉底': [
+                '这是一个很好的问题。让我们从另一个角度思考...',
+                '你认为什么是真正的智慧？',
+                '美德是否可教？这是一个值得探讨的问题。',
+                '认识你自己，这是德尔菲神庙的箴言，也是哲学的起点。',
+                '我知道我一无所知，这正是我的智慧所在。'
+            ],
+            '哈利波特': [
+                '在霍格沃茨，我们经常说："永远不要相信任何能够独立思考的东西，除非你看清了它把头脑藏在什么地方。"',
+                '魁地奇比赛真是太刺激了！你最喜欢哪个位置？',
+                '赫敏总是说："书本！还有更重要的东西吗？"',
+                '多比是自由的小精灵！',
+                '爱，是最强大的魔法。'
+            ],
+            '爱因斯坦': [
+                '想象力比知识更重要，因为知识是有限的，而想象力概括着世界上的一切。',
+                '时间是相对的，这取决于你移动的速度。',
+                'E=mc²，这个公式揭示了质量和能量的等价关系。',
+                '宇宙最不可理解之处，就是它是可理解的。',
+                '复利是世界的第八大奇迹。'
+            ],
+            '林黛玉': [
+                '花谢花飞花满天，红消香断有谁怜？',
+                '满纸荒唐言，一把辛酸泪。都云作者痴，谁解其中味？',
+                '质本洁来还洁去，强于污淖陷渠沟。',
+                '一朝春尽红颜老，花落人亡两不知！',
+                '侬今葬花人笑痴，他年葬侬知是谁？'
+            ],
+            '牛顿': [
+                '如果说我看得更远，那是因为我站在巨人的肩膀上。',
+                '万有引力定律告诉我们，任何两个物体之间都存在相互吸引的力。',
+                '我之所以发现万有引力，是因为我一直在思考苹果为什么会落地。',
+                '我的三大运动定律可以解释宏观世界中物体的运动规律。',
+                '微积分是理解变化率和累积量的强大数学工具。'
+            ],
+            '莎士比亚': [
+                '生存还是毁灭，这是一个值得思考的问题。',
+                '一千个读者眼中有一千个哈姆雷特。',
+                '爱情是盲目的，恋人们看不到自己做的傻事。',
+                '对众人一视同仁，对少数人推心置腹，对任何人不要亏负。',
+                '书籍是全世界的营养品。'
+            ]
+        };
+
+        const charResponses = responses[currentCharacter.name] || ['这是一个有趣的话题。能请你详细说说吗？'];
+        return charResponses[Math.floor(Math.random() * charResponses.length)];
+    }
+
+    // 初始化语音识别
+    function initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            recognition.lang = 'zh-CN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                textInput.value = speechResult;
+                recognitionStatus.textContent = `识别结果: ${speechResult}`;
+            };
+
+            recognition.onspeechend = () => {
+                recognition.stop();
+                isRecording = false;
+                voiceInputBtn.innerHTML = '<i class="fa fa-microphone"></i>';
+                recognitionStatus.textContent = '语音输入已结束，可点击发送';
+            };
+
+            recognition.onerror = (event) => {
+                recognitionStatus.textContent = `错误: ${event.error}`;
+                isRecording = false;
+                voiceInputBtn.innerHTML = '<i class="fa fa-microphone"></i>';
+            };
+
+            recognition.onstart = () => {
+                recognitionStatus.textContent = '正在聆听，请说话...';
+            };
+        } else {
+            voiceInputBtn.disabled = true;
+            voiceInputBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            recognitionStatus.textContent = '您的浏览器不支持语音识别功能';
+        }
+    }
+
+    // 开始/停止语音识别
+    function toggleVoiceRecognition() {
+        if (!recognition) return;
+
+        if (isRecording) {
+            recognition.stop();
+            isRecording = false;
+            voiceInputBtn.innerHTML = '<i class="fa fa-microphone"></i>';
+        } else {
+            recognition.start();
+            isRecording = true;
+            voiceInputBtn.innerHTML = '<i class="fa fa-stop"></i>';
+        }
+    }
+
+    // 语音合成文本
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // 显示角色详情模态框
+    function showCharacterModal() {
+        if (currentCharacter) {
+            document.getElementById('modal-character-name').textContent = currentCharacter.name;
+            document.getElementById('modal-character-description').textContent = currentCharacter.description;
+
+            const skillsList = document.getElementById('modal-character-skills');
+            skillsList.innerHTML = '';
+            currentCharacter.skills.forEach(skill => {
+                const li = document.createElement('li');
+                li.textContent = skill;
+                li.className = 'mb-1 text-gray-700 dark:text-gray-300';
+                skillsList.appendChild(li);
+            });
+
+            characterModal.classList.remove('hidden');
+        }
+    }
+
+    // 搜索角色
+    function searchCharacters() {
+        const searchTerm = characterSearch.value.toLowerCase().trim();
+        if (searchTerm) {
+            const foundCharacter = characters.find(char =>
+                char.name.toLowerCase().includes(searchTerm)
+            );
+
+            if (foundCharacter) {
+                selectCharacter(foundCharacter);
+            } else {
+                alert(`未找到角色: ${searchTerm}`);
+            }
+        }
+    }
+
+    // 切换暗色模式
+    function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+    }
+
+    // 检查暗色模式偏好
+    function checkDarkModePreference() {
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'true' ||
+            (darkMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+
+    // 初始化事件监听器
+    function initEventListeners() {
+        // 发送按钮点击
+        sendBtn.addEventListener('click', sendMessage);
+
+        // 回车键发送消息
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 语音输入按钮点击
+        voiceInputBtn.addEventListener('click', toggleVoiceRecognition);
+
+        // 关闭聊天按钮点击
+        closeChatBtn.addEventListener('click', () => {
+            chatSection.classList.add('hidden');
+            currentCharacter = null;
+            chatHistory = [];
+        });
+
+        // 搜索按钮点击
+        searchButton.addEventListener('click', searchCharacters);
+
+        // 搜索框回车键
+        characterSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchCharacters();
+            }
+        });
+
+        // 关闭模态框按钮点击
+        closeModalBtn.addEventListener('click', () => {
+            characterModal.classList.add('hidden');
+        });
+
+        // 角色信息按钮点击
+        characterInfoBtn.addEventListener('click', showCharacterModal);
+
+        // 模态框中开始对话按钮点击
+        startChatFromModalBtn.addEventListener('click', () => {
+            characterModal.classList.add('hidden');
+        });
+
+        // 主题切换按钮点击
+        themeToggle.addEventListener('click', toggleDarkMode);
+
+        // 分类按钮点击
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有按钮的选中状态
+                categoryButtons.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                });
+
+                // 添加当前按钮的选中状态
+                btn.classList.remove('bg-white', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                btn.classList.add('bg-primary', 'text-white');
+
+                // 加载对应分类的角色
+                loadCharacterCards(btn.dataset.category);
+            });
+        });
+
+        // 点击模态框外部关闭
+        characterModal.addEventListener('click', (e) => {
+            if (e.target === characterModal) {
+                characterModal.classList.add('hidden');
+            }
+        });
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-8c18bb2b769d403b98b9d4c3ed3b08e2
+      model-name: qwen-plus
+      log-requests: true
+      log-responses: true
+
+    streaming-chat-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-8c18bb2b769d403b98b9d4c3ed3b08e2
+      model-name: qwen-plus
+      log-requests: true
+      log-responses: true
+
+    embedding-model:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api-key: sk-8c18bb2b769d403b98b9d4c3ed3b08e2
+      model-name: text-embedding-v3
+      log-requests: true
+      log-responses: true
+
+logging:
+  level:
+    dev.langchain4j: debug
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.10.100:3306/user?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+
+
+  data:
+    redis:
+      host: 192.168.10.100
+      port: 6379
