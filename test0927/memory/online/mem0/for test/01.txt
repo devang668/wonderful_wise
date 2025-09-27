@@ -1,0 +1,86 @@
+import requests
+import json
+
+# Mem0 API Key
+MEM0_KEY = "m0-P1U9YQnnP6p8gGtdvBvHOMmFRiw2A1foNlqUzE7g"
+
+# Mem0 API URL
+MEM0_URL = "https://mem0api.com/v1/memory"
+
+def get_memory(role_id):
+    """从mem0获取指定角色的记忆"""
+    response = requests.get(
+        MEM0_URL,
+        headers={"Authorization": f"Bearer {MEM0_KEY}", "Content-Type": "application/json"},
+        params={"role_id": role_id}
+    )
+    if response.status_code == 200:
+        return response.json().get("memory", "")
+    return ""
+
+def update_memory(role_id, memory):
+    """更新指定角色的记忆"""
+    payload = {
+        "role_id": role_id,
+        "memory": memory
+    }
+    response = requests.post(
+        MEM0_URL,
+        headers={"Authorization": f"Bearer {MEM0_KEY}", "Content-Type": "application/json"},
+        data=json.dumps(payload)
+    )
+    return response.status_code == 200
+
+def chat_with_ai(role_id, user_message):
+    """与AI对话并保持记忆"""
+    # 获取当前角色的记忆
+    memory = get_memory(role_id)
+    
+    # 设置AI请求的头部
+    url = "https://openai.qiniu.com/v1/chat/completions"
+    headers = {
+        "Authorization": "sk-b49297368cc8899fd297158e665454646646758a1d8d9d3461e8e4", 
+        "Content-Type": "application/json"
+    }
+
+    # 设置对话消息
+    payload = {
+        "stream": False,
+        "model": "doubao-1.5-vision-pro",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_message}
+        ]
+    }
+    
+    # 将角色的记忆添加到系统消息中
+    if memory:
+        payload["messages"].insert(1, {"role": "system", "content": f"Previous memory: {memory}"})
+    
+    # 发送请求给OpenAI模型
+    response = requests.post(url, json=payload, headers=headers)
+    
+    # 获取AI回复
+    data = response.json()
+    content = data["choices"][0]["message"]["content"]
+    
+    # 更新记忆：将AI的回复与原有记忆合并
+    new_memory = f"{memory}\nUser: {user_message}\nAI: {content}"
+    update_memory(role_id, new_memory)
+    
+    # 返回AI的回复
+    return content
+
+
+
+-------------------
+
+# 示例：与角色1进行对话
+role_id_1 = "role_1"
+response = chat_with_ai(role_id_1, "Hello AI!")
+print(response)
+
+# 示例：与角色2进行对话
+role_id_2 = "role_2"
+response = chat_with_ai(role_id_2, "Hi AI, how are you?")
+print(response)

@@ -1,0 +1,42 @@
+{
+    "providers": {
+        "qian-niu": {
+            "url": "https://openai.qiniu.com/v1/chat/completions",
+            "headers": {
+                "Authorization": "Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            "default_model": "nvidia/nvidia-nemotron-nano-9b-v2",
+            "api_key": "sk-2e282136ce6bcc5aa2f7b32e6b34811133d0d3f26d39696495a03c217b0dbdb0"
+        },
+        "qian-niu-kimi": {
+            "url": "https://openai.qiniu.com/v1/chat/completions",
+            "headers": {
+                "Authorization": "Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            "default_model": "moonshotai/kimi-k2-0905",
+            "api_key": "sk-2e282136ce6bcc5aa2f7b32e6b34811133d0d3f26d39696495a03c217b0dbdb0"
+        },
+        "qian-niu-doubao": {
+            "url": "https://openai.qiniu.com/v1/chat/completions",
+            "headers": {
+                "Authorization": "Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            "default_model": "doubao-1.5-thinking-pro",
+            "api_key": "sk-2e282136ce6bcc5aa2f7b32e6b34811133d0d3f26d39696495a03c217b0dbdb0"
+        },
+        "anthropic": {
+            "url": "https://api.anthropic.com/v1/messages",
+            "headers": {
+                "x-api-key": "{api_key}",
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+            },
+            "default_model": "claude-2.1",
+            "api_key": "your-anthropic-api-key-here"
+        }
+    }
+}
+    
