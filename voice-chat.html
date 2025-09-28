@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>AI语音对话助手</title>
+    <link rel="stylesheet" href="./css/base.css">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .chat-panel {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .control-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .current-role {
+            font-size: 1.2em;
+            color: #495057;
+            font-weight: bold;
+        }
+
+        .thinking-indicator {
+            margin-top: 5px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .thinking-indicator small {
+            font-size: 0.9em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .ai-message {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #e9ecef;
+        }
+
+        .message-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .voice-controls {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .voice-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .start-voice {
+            background: #28a745;
+            color: white;
+        }
+
+        .start-voice:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .start-voice:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stop-voice {
+            background: #dc3545;
+            color: white;
+        }
+
+        .stop-voice:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .role-selector {
+            margin-bottom: 20px;
+        }
+
+        .role-selector h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .role-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .role-btn {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .role-btn:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+
+        .role-btn.active {
+            border-color: #007bff;
+            background: #007bff;
+            color: white;
+        }
+
+        .history-controls {
+            margin-bottom: 20px;
+        }
+
+        .history-controls h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .history-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dc3545;
+            background: white;
+            color: #dc3545;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .history-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-info {
+            margin-top: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .history-info small {
+            color: #6c757d;
+        }
+
+        .status-indicator {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .status-listening {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .audio-player {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .control-panel {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 AI语音对话助手</h1>
+            <p>与AI进行自然语音对话，支持角色切换和历史记录</p>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-panel">
+                <div class="chat-header">
+                    <div class="current-role" id="current-role">当前角色：可爱小萝莉</div>
+                    <div class="thinking-indicator" id="thinking-indicator" style="display: none;">
+                        <small>🤔 对方正在思考中...</small>
+                    </div>
+                    <div class="status-indicator" id="status-indicator" style="display: none;"></div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message ai-message">
+                        <div>你好！我是你的AI语音助手，点击下方按钮开始语音对话吧！</div>
+                        <div class="message-time" id="welcome-time"></div>
+                    </div>
+                </div>
+
+                <div class="voice-controls">
+                    <button class="voice-button start-voice" id="start-voice-btn">
+                        🎤 开始语音对话
+                    </button>
+                    <button class="voice-button stop-voice" id="stop-voice-btn" style="display: none;">
+                        ⏹️ 停止录音
+                    </button>
+                    <button class="voice-button" id="send-manual-btn" style="display: none; background: #17a2b8; color: white;">
+                        📤 发送消息
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="role-selector">
+                    <h3>🎭 选择AI角色</h3>
+                    <div class="role-buttons" id="role-buttons">
+                        <!-- 角色按钮将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+
+                <div class="history-controls">
+                    <h3>📚 对话历史</h3>
+                    <div class="history-buttons">
+                        <button class="history-btn" id="export-chat-btn">
+                            📤 导出聊天记录
+                        </button>
+                        <button class="history-btn" id="import-chat-btn" style="background: #28a745; color: white;">
+                            📥 导入聊天记录
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                        <button class="history-btn" id="clear-history-btn" style="background: #dc3545; color: white;">
+                            🗑️ 清空当前角色历史
+                        </button>
+                    </div>
+                    <div class="history-info" id="history-info">
+                        <small>当前角色聊天记录：<span id="history-count">0</span> 条</small>
+                    </div>
+                </div>
+
+                <div class="status-info">
+                    <h3>ℹ️ 使用说明</h3>
+                    <ul style="font-size: 0.9em; color: #6c757d; line-height: 1.5;">
+                        <li>点击"开始语音对话"按钮开始录音</li>
+                        <li>说话后会自动停止录音并发送给AI</li>
+                        <li>AI会以语音形式回复你</li>
+                        <li>可以随时切换不同的AI角色</li>
+                        <li>支持清空对话历史重新开始</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="./js/crypto-js.min.js"></script>
+    <script src="./js/xf-voice-dictation.js"></script>
+    
+    <script>
+        // 全局变量
+        let xfVoice = null;
+        let currentRole = 'luoli';
+        let isListening = false;
+        let audioContext = null;
+        let lastSentMessage = '';
+        let lastSentTime = 0;
+        let isProcessing = false;
+        let messageTimeout = null;
+
+        // DOM元素
+        const chatMessages = document.getElementById('chat-messages');
+        const currentRoleDisplay = document.getElementById('current-role');
+        const statusIndicator = document.getElementById('status-indicator');
+        const thinkingIndicator = document.getElementById('thinking-indicator');
+        const startVoiceBtn = document.getElementById('start-voice-btn');
+        const stopVoiceBtn = document.getElementById('stop-voice-btn');
+        const sendManualBtn = document.getElementById('send-manual-btn');
+        const roleButtons = document.getElementById('role-buttons');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
+        const exportChatBtn = document.getElementById('export-chat-btn');
+        const importChatBtn = document.getElementById('import-chat-btn');
+        const importFileInput = document.getElementById('import-file-input');
+        const historyCount = document.getElementById('history-count');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeVoiceRecognition();
+            loadRoles();
+            setupEventListeners();
+            updateWelcomeTime();
+            // 加载当前角色的历史记录
+            loadCurrentRoleHistory();
+        });
+
+        // 初始化语音识别
+        function initializeVoiceRecognition() {
+            try {
+                xfVoice = new XfVoiceDictation({
+                    APPID: '4332894d',
+                    APISecret: 'ZWUyMjI1ODk5MGM3MjEwNWNkNjk1OTVh',
+                    APIKey: 'e083c63b432d4b430e5b59f8ef7e8574',
+                    
+                    onWillStatusChange: function(oldStatus, newStatus) {
+                        console.log('语音识别状态变化:', oldStatus, newStatus);
+                        updateStatus('正在录音...', 'listening');
+                        
+                        // 当录音结束时，如果有待发送的消息，立即发送
+                        if (oldStatus === 'ing' && newStatus === 'end' && messageTimeout) {
+                            clearTimeout(messageTimeout);
+                            // 延迟500ms发送，确保文本识别完成
+                            setTimeout(() => {
+                                if (lastSentMessage && !isProcessing) {
+                                    handleVoiceMessage(lastSentMessage);
+                                }
+                            }, 500);
+                        }
+                    },
+                    
+                    onTextChange: function(text) {
+                        console.log('识别到的文本:', text);
+                        if (text && text.trim()) {
+                            // 保存最新的文本
+                            lastSentMessage = text.trim();
+                            
+                            // 清除之前的定时器
+                            if (messageTimeout) {
+                                clearTimeout(messageTimeout);
+                            }
+                            
+                            // 设置新的定时器，延迟发送消息
+                            // 只有在文本稳定2秒后才发送
+                            messageTimeout = setTimeout(() => {
+                                if (xfVoice && xfVoice.status === 'ing') {
+                                    // 如果还在录音中，继续等待
+                                    return;
+                                }
+                                if (xfVoice) {
+                                    xfVoice.stop();
+                                }
+                                handleVoiceMessage(text.trim());
+                            }, 2000); // 延迟2秒发送
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('语音识别初始化失败:', error);
+                showError('语音识别初始化失败，请检查浏览器权限设置');
+            }
+        }
+
+        // 加载可用角色
+        async function loadRoles() {
+            try {
+                const response = await fetch('http://localhost:5000/roles');
+                const data = await response.json();
+                
+                roleButtons.innerHTML = '';
+                Object.entries(data.roles).forEach(([key, name]) => {
+                    const button = document.createElement('button');
+                    button.className = `role-btn ${key === currentRole ? 'active' : ''}`;
+                    button.textContent = name;
+                    button.onclick = () => switchRole(key);
+                    roleButtons.appendChild(button);
+                });
+            } catch (error) {
+                console.error('加载角色失败:', error);
+            }
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            startVoiceBtn.onclick = startVoiceRecording;
+            stopVoiceBtn.onclick = stopVoiceRecording;
+            sendManualBtn.onclick = sendManualMessage;
+            clearHistoryBtn.onclick = clearHistory;
+            exportChatBtn.onclick = exportChat;
+            importChatBtn.onclick = () => importFileInput.click();
+            importFileInput.onchange = importChat;
+        }
+
+        // 开始语音录音
+        function startVoiceRecording() {
+            if (!xfVoice) {
+                showError('语音识别未初始化');
+                return;
+            }
+
+            try {
+                isListening = true;
+                xfVoice.start();
+                startVoiceBtn.style.display = 'none';
+                stopVoiceBtn.style.display = 'block';
+                updateStatus('正在录音，请说话...', 'listening');
+            } catch (error) {
+                console.error('开始录音失败:', error);
+                showError('开始录音失败: ' + error.message);
+                resetVoiceButtons();
+            }
+        }
+
+        // 停止语音录音
+        function stopVoiceRecording() {
+            if (xfVoice) {
+                xfVoice.stop();
+            }
+            resetVoiceButtons();
+            updateStatus('', '');
+        }
+
+        // 手动发送消息
+        function sendManualMessage() {
+            if (lastSentMessage && !isProcessing) {
+                handleVoiceMessage(lastSentMessage);
+            } else {
+                showError('没有可发送的消息或正在处理中');
+            }
+        }
+
+        // 重置语音按钮状态
+        function resetVoiceButtons() {
+            isListening = false;
+            startVoiceBtn.style.display = 'block';
+            stopVoiceBtn.style.display = 'none';
+            // 如果有待发送的消息，显示手动发送按钮
+            if (lastSentMessage && !isProcessing) {
+                sendManualBtn.style.display = 'block';
+            } else {
+                sendManualBtn.style.display = 'none';
+            }
+        }
+
+        // 处理语音消息（防重复发送）
+        function handleVoiceMessage(text) {
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastSentTime;
+            
+            // 检查是否是重复消息
+            if (text === lastSentMessage && timeDiff < 5000) {
+                console.log('检测到重复消息，忽略发送:', text);
+                return;
+            }
+            
+            // 检查是否正在处理中
+            if (isProcessing) {
+                console.log('正在处理中，忽略新消息:', text);
+                return;
+            }
+            
+            // 更新记录
+            lastSentMessage = text;
+            lastSentTime = currentTime;
+            
+            // 发送消息
+            sendVoiceMessage(text);
+        }
+
+        // 发送语音消息
+        async function sendVoiceMessage(text) {
+            // 设置处理状态
+            isProcessing = true;
+            resetVoiceButtons();
+            showThinkingIndicator();
+
+            try {
+                const response = await fetch('http://localhost:5000/voice_chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // 添加用户消息到聊天记录
+                addMessageToChat(text, 'user');
+                
+                // 添加AI回复到聊天记录
+                addMessageToChat(data.message, 'ai');
+                
+                // 播放AI语音回复
+                if (data.audio) {
+                    playAudioFromBase64(data.audio);
+                } else if (data.tts_error) {
+                    console.warn('TTS错误:', data.tts_error);
+                }
+
+                // 更新当前角色显示
+                if (data.current_role) {
+                    currentRole = data.current_role;
+                    updateCurrentRoleDisplay();
+                }
+
+                hideThinkingIndicator();
+                isProcessing = false;
+                // 发送成功后隐藏手动发送按钮
+                sendManualBtn.style.display = 'none';
+
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                showError('发送消息失败: ' + error.message);
+                hideThinkingIndicator();
+                isProcessing = false;
+                // 发送失败后显示手动发送按钮
+                if (lastSentMessage) {
+                    sendManualBtn.style.display = 'block';
+                }
+            }
+        }
+
+        // 切换角色
+        async function switchRole(roleKey) {
+            if (roleKey === currentRole) return;
+
+            try {
+                const response = await fetch('http://localhost:5000/switch_role', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: roleKey })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                currentRole = roleKey;
+                updateCurrentRoleDisplay();
+                updateRoleButtons();
+                
+                // 立即清空聊天显示
+                chatMessages.innerHTML = '';
+                
+                // 加载新角色的历史记录
+                await loadCurrentRoleHistory();
+
+            } catch (error) {
+                console.error('切换角色失败:', error);
+                showError('切换角色失败: ' + error.message);
+            }
+        }
+
+        // 清空历史记录
+        async function clearHistory() {
+            if (!confirm(`确定要清空 ${AVAILABLE_ROLES[currentRole]} 的对话历史吗？`)) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/clear_chat_history/${currentRole}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                chatMessages.innerHTML = `
+                    <div class="message ai-message">
+                        <div>你好！我是你的AI语音助手，点击下方按钮开始语音对话吧！</div>
+                        <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                `;
+
+                updateHistoryCount(0);
+                showSuccess('历史记录已清空');
+
+            } catch (error) {
+                console.error('清空历史失败:', error);
+                showError('清空历史失败: ' + error.message);
+            }
+        }
+
+        // 导出聊天记录
+        async function exportChat() {
+            try {
+                const response = await fetch('http://localhost:5000/export_chat');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // 创建下载链接
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                showSuccess('聊天记录导出成功！');
+
+            } catch (error) {
+                console.error('导出失败:', error);
+                showError('导出失败: ' + error.message);
+            }
+        }
+
+        // 导入聊天记录
+        async function importChat(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.json')) {
+                showError('请选择JSON格式的文件');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('http://localhost:5000/import_chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                showSuccess(`成功导入 ${data.imported_roles.length} 个角色的聊天记录！`);
+                
+                // 重新加载当前角色的历史记录
+                await loadCurrentRoleHistory();
+
+            } catch (error) {
+                console.error('导入失败:', error);
+                showError('导入失败: ' + error.message);
+            }
+
+            // 清空文件输入
+            event.target.value = '';
+        }
+
+        // 加载当前角色的历史记录
+        async function loadCurrentRoleHistory() {
+            try {
+                const response = await fetch(`http://localhost:5000/get_chat_history/${currentRole}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                updateHistoryCount(data.count);
+                
+                // 先清空当前显示
+                chatMessages.innerHTML = '';
+                
+                // 如果当前角色有历史记录，显示最后几条
+                if (data.history && data.history.length > 0) {
+                    const chatHistory = data.history.filter(msg => msg.role === 'user' || msg.role === 'assistant');
+                    if (chatHistory.length > 0) {
+                        // 显示历史记录（最多显示最后10条）
+                        const recentHistory = chatHistory.slice(-10);
+                        recentHistory.forEach(msg => {
+                            addMessageToChat(msg.content, msg.role);
+                        });
+                    } else {
+                        // 没有用户和AI的对话记录，显示欢迎消息
+                        showWelcomeMessage();
+                    }
+                } else {
+                    // 完全没有历史记录，显示欢迎消息
+                    showWelcomeMessage();
+                }
+
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+                // 出错时也清空显示并显示欢迎消息
+                chatMessages.innerHTML = '';
+                showWelcomeMessage();
+            }
+        }
+
+        // 显示欢迎消息
+        function showWelcomeMessage() {
+            chatMessages.innerHTML = `
+                <div class="message ai-message">
+                    <div>你好！我是你的AI语音助手，点击下方按钮开始语音对话吧！</div>
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+        }
+
+        // 更新历史记录计数
+        function updateHistoryCount(count) {
+            historyCount.textContent = count;
+        }
+
+        // 添加消息到聊天记录
+        function addMessageToChat(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.textContent = message;
+            messageDiv.appendChild(contentDiv);
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 播放Base64音频
+        function playAudioFromBase64(base64Audio) {
+            try {
+                const audioData = atob(base64Audio);
+                const audioArray = new Uint8Array(audioData.length);
+                for (let i = 0; i < audioData.length; i++) {
+                    audioArray[i] = audioData.charCodeAt(i);
+                }
+                
+                const audioBlob = new Blob([audioArray], { type: 'audio/mp3' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                const audio = new Audio(audioUrl);
+                audio.play().then(() => {
+                    console.log('音频播放成功');
+                }).catch(error => {
+                    console.error('音频播放失败:', error);
+                });
+                
+                // 清理URL对象
+                audio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                };
+                
+            } catch (error) {
+                console.error('播放音频失败:', error);
+            }
+        }
+
+        // 更新状态指示器
+        function updateStatus(message, type) {
+            if (!message) {
+                statusIndicator.style.display = 'none';
+                return;
+            }
+            
+            statusIndicator.textContent = message;
+            statusIndicator.className = `status-indicator status-${type}`;
+            statusIndicator.style.display = 'block';
+        }
+
+        // 显示思考指示器
+        function showThinkingIndicator() {
+            thinkingIndicator.style.display = 'block';
+        }
+
+        // 隐藏思考指示器
+        function hideThinkingIndicator() {
+            thinkingIndicator.style.display = 'none';
+        }
+
+
+        // 更新当前角色显示
+        function updateCurrentRoleDisplay() {
+            const roleNames = {
+                'luoli': '可爱小萝莉',
+                'nuannan': '超级暖男',
+                'youzi': '孔子学生'
+            };
+            currentRoleDisplay.textContent = `当前角色：${roleNames[currentRole] || currentRole}`;
+        }
+
+        // 更新角色按钮状态
+        function updateRoleButtons() {
+            const buttons = roleButtons.querySelectorAll('.role-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(roleNames[currentRole])) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            addMessageToChat(`❌ ${message}`, 'ai');
+        }
+
+        // 显示成功信息
+        function showSuccess(message) {
+            // 创建临时提示
+            const successDiv = document.createElement('div');
+            successDiv.className = 'message ai-message';
+            successDiv.style.background = '#d4edda';
+            successDiv.style.color = '#155724';
+            successDiv.style.border = '1px solid #c3e6cb';
+            successDiv.innerHTML = `✅ ${message}`;
+            
+            chatMessages.appendChild(successDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 3000);
+        }
+
+        // 更新欢迎时间
+        function updateWelcomeTime() {
+            const welcomeTime = document.getElementById('welcome-time');
+            if (welcomeTime) {
+                welcomeTime.textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        // 角色名称映射
+        const roleNames = {
+            'luoli': '可爱小萝莉',
+            'nuannan': '超级暖男',
+            'youzi': '孔子学生'
+        };
+
+        // 可用角色列表（用于显示）
+        const AVAILABLE_ROLES = {
+            'luoli': '可爱小萝莉',
+            'nuannan': '超级暖男',
+            'youzi': '孔子学生'
+        };
+    </script>
+</body>
+</html>
